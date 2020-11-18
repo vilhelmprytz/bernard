@@ -1,13 +1,11 @@
 [[source]]
-name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
-
-[dev-packages]
-black = "==19.10b0"
+name = "pypi"
 
 [packages]
-flask = "*"
+
+[dev-packages]
 
 [requires]
 python_version = "3.9"
