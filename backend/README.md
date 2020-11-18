@@ -1,3 +1,0 @@
-# bernard/backend
-
-Backend API.
