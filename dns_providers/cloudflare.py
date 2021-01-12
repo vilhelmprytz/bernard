@@ -28,3 +28,7 @@ def add(zone, subdomain, ip):
 
     if r.status_code != requests.codes.ok:
         raise Exception(f"cloudflare {str(r.content)}")
+
+
+def check_record(zone, subdomain, ip):
+    pass

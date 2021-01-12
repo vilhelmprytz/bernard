@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_DATABASE: "bernard"
+      MYSQL_USER: "bernard"
+      MYSQL_PASSWORD: "password"
+      MYSQL_ROOT_PASSWORD: "password"
+    ports:
+      - 3306:3306
+    expose:
+      - 3306
