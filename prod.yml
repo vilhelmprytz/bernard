@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql
+    container_name: bernard_mysql
+    environment:
+      MYSQL_DATABASE: "bernard"
+      MYSQL_USER: "bernard"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD}"
+  app:
+    image: prytz/bernard
+    environment:
+      MYSQL_HOST: "mysql"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    depends_on:
+      - mysql
+    ports:
+      - 5000:5000
+    expose:
+      - 5000
+    container_name: bernard_app
