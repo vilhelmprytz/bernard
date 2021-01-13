@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 import os
 import string
 from dns_providers import bind9
@@ -30,11 +30,6 @@ def valid_input(variable):
     if any(x not in alnum for x in variable):
         return False
     return True
-
-
-@app.route("/")
-def index():
-    return render_template("index.html")
 
 
 @app.route("/api/subdomain", methods=["POST", "GET"])

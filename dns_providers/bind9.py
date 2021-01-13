@@ -11,5 +11,5 @@ def sync(records, zones):
         )
 
     for filename, content in files.items():
-        with open(f"{filename}.zone", "w") as f:
+        with open(f"zones/{filename}.zone", "w") as f:
             f.write(content)

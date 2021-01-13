@@ -9,11 +9,14 @@ services:
       MYSQL_USER: "bernard"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
       MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD}"
+    volumes:
+      - bernard-mysql:/var/lib/mysql
   app:
     image: prytz/bernard
     environment:
       MYSQL_HOST: "mysql"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      PORT: 5000
     depends_on:
       - mysql
     ports:
@@ -21,3 +24,9 @@ services:
     expose:
       - 5000
     container_name: bernard_app
+    volumes:
+      - ${ZONE_PATH}:/var/www/app/zones
+
+volumes:
+  bernard-mysql:
+  bernard-zones:
