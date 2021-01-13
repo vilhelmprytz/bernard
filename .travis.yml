@@ -1,7 +1,7 @@
 language: python
 python: 3.9
 install:
-  - pip install flake8 black --upgrad
+  - pip install flake8 black --upgrade
 script:
   - black . --check
   - flake8 .
