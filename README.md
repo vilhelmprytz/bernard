@@ -37,6 +37,7 @@ You can run the scripts from docker-compose. Replace `docker-compose.prod.mysql.
 docker-compose -f docker-compose.prod.mysql.yml exec app ".venv/bin/python" "scripts/create_zone.py"
 docker-compose -f docker-compose.prod.mysql.yml exec app ".venv/bin/python" "scripts/ban_ip.py"
 docker-compose -f docker-compose.prod.mysql.yml exec app ".venv/bin/python" "scripts/ban_record.py"
+docker-compose -f docker-compose.prod.mysql.yml exec app ".venv/bin/python" "scripts/sync.py"
 ```
 
 ## Updating serial number when the zone changes
