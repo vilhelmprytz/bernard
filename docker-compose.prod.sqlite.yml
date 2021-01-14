@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  app:
+    image: prytz/bernard
+    environment:
+      PORT: ${PORT}
+      DATABASE_TYPE: "sqlite"
+    ports:
+      - "${PORT}:${PORT}"
+    expose:
+      - "${PORT}"
+    container_name: bernard_app
+    volumes:
+      - ${ZONE_PATH}:/var/www/app/zones
+      - ${DATABASE_PATH}:/var/www/app/database

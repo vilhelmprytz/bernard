@@ -9,10 +9,18 @@ MYSQL_USER = os.environ.get("MYSQL_USER", "bernard")
 MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "password")
 MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "bernard")
 
+DATABASE_TYPE = os.environ.get("DATABASE_TYPE", "mysql")
+
 app = Flask(__name__)
-app.config[
-    "SQLALCHEMY_DATABASE_URI"
-] = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DATABASE}"
+if DATABASE_TYPE == "mysql":
+    app.config[
+        "SQLALCHEMY_DATABASE_URI"
+    ] = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DATABASE}"
+elif DATABASE_TYPE == "sqlite":
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///database/bernard.db"
+else:
+    raise Exception(f"invalid DATABASE_TYPE {DATABASE_TYPE}")
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
