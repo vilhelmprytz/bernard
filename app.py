@@ -17,7 +17,7 @@ if DATABASE_TYPE == "mysql":
         "SQLALCHEMY_DATABASE_URI"
     ] = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DATABASE}"
 elif DATABASE_TYPE == "sqlite":
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///database/bernard.db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database/bernard.db"
 else:
     raise Exception(f"invalid DATABASE_TYPE {DATABASE_TYPE}")
 
