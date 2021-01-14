@@ -11,3 +11,4 @@ prod.override.yml
 
 # testing
 *.zone
+*.sqlite
