@@ -49,7 +49,6 @@ You can use a simple bash script that cronjob executes every minute to increment
 
 BERNARD_ZONE="/etc/bind/bernard/<FQDN>.zone"
 BERNARD_ZONE_SUM="/tmp/<FQDN>.md5sum"
-ZONE="<FQDN>"
 ZONE_PATH="/etc/bind/zones/db.<FQDN>"
 
 previous_sum=$(<$BERNARD_ZONE_SUM)
@@ -58,7 +57,7 @@ new_sum=$(md5sum $BERNARD_ZONE)
 refresh() {
     new_serial=$(date +'%s')
     sed -i "s/.*; Serial.*/$new_serial ; Serial/" $ZONE_PATH
-    rndc reload $ZONE
+    rndc reload
 }
 
 [ "$previous_sum" != "$new_sum" ] && refresh
