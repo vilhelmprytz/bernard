@@ -8,4 +8,4 @@ fi
 
 sleep 15s   # wait for the MySQL container to start fully
 
-.venv/bin/gunicorn --workers=4 --bind 0.0.0.0:"$PORT" app:app
+gunicorn --workers=4 --bind 0.0.0.0:"$PORT" app:app

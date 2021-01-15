@@ -34,10 +34,10 @@ ZONE_PATH="/etc/bind/bernard"
 You can run the scripts from docker-compose. Replace `docker-compose.prod.mysql.yml` with `docker-compose.prod.sqlite.yml` if you are using SQLite.
 
 ```bash
-docker-compose -f docker-compose.prod.mysql.yml exec app ".venv/bin/python" "scripts/create_zone.py"
-docker-compose -f docker-compose.prod.mysql.yml exec app ".venv/bin/python" "scripts/ban_ip.py"
-docker-compose -f docker-compose.prod.mysql.yml exec app ".venv/bin/python" "scripts/ban_record.py"
-docker-compose -f docker-compose.prod.mysql.yml exec app ".venv/bin/python" "scripts/sync.py"
+docker-compose -f docker-compose.prod.mysql.yml exec app python scripts/create_zone.py
+docker-compose -f docker-compose.prod.mysql.yml exec app python scripts/ban_ip.py
+docker-compose -f docker-compose.prod.mysql.yml exec app python scripts/ban_record.py
+docker-compose -f docker-compose.prod.mysql.yml exec app python scripts/sync.py
 ```
 
 ## Updating serial number when the zone changes
