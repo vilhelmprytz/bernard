@@ -56,11 +56,9 @@ previous_sum=$(<$BERNARD_ZONE_SUM)
 new_sum=$(md5sum $BERNARD_ZONE)
 
 refresh() {
-    serial=$(rndc zonestatus $ZONE | grep serial | cut -c9-)
-    new_serial=$((serial+1))
-
+    new_serial=$(date +'%s')
     sed -i "s/.*; Serial.*/$new_serial ; Serial/" $ZONE_PATH
-    rndc reload
+    rndc reload $ZONE
 }
 
 [ "$previous_sum" != "$new_sum" ] && refresh

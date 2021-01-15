@@ -40,7 +40,7 @@ def valid_input(variable):
     return True
 
 
-@app.route("/api/subdomain", methods=["POST", "GET"])
+@app.route("/api/subdomain", methods=["POST", "PUT", "GET", "DELETE"])
 def api_subdomain():
     if request.environ.get("HTTP_X_FORWARDED_FOR") is None:
         remote_addr = request.environ["REMOTE_ADDR"]
@@ -56,6 +56,7 @@ def api_subdomain():
 
         if len(search.all()) == 0:
             return json_abort(404, "You do not have a subdomain")
+
         return jsonify(
             {
                 "success": True,
@@ -67,8 +68,27 @@ def api_subdomain():
             }
         )
 
-    if request.method == "POST":
-        # POST data
+    if request.method == "DELETE":
+        search = Record.query.filter_by(ip=remote_addr)
+
+        if len(search.all()) == 0:
+            return json_abort(404, "You do not have a subdomain")
+
+        db.session.delete(search.first())
+        db.session.commit()
+
+        bind9.sync(zones=Zone.query.all(), records=Record.query.all())
+
+        return jsonify(
+            {
+                "success": True,
+                "description": "Subdomain removed",
+                "code": 200,
+            }
+        )
+
+    if request.method == "POST" or request.method == "PUT":
+        # request data
         form = request.json
         subdomain = form["subdomain"]
         zone_name = form["zone"]
@@ -86,6 +106,16 @@ def api_subdomain():
         if len(zone.all()) != 1:
             return json_abort(400, "Invalid zone")
         zone = zone.first()
+
+        # if PUT, we delete the previous record
+        if request.method == "PUT":
+            search = Record.query.filter_by(ip=remote_addr)
+
+            if len(search.all()) == 0:
+                return json_abort(404, "You do not have a subdomain")
+
+            db.session.delete(search.first())
+            db.session.commit()
 
         # lookup in table
         search = Record.query.filter_by(subdomain=form["subdomain"], zone=zone)
