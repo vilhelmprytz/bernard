@@ -3,6 +3,7 @@ import os
 import string
 from dns_providers import bind9
 from models import db, Zone, Record, BannedIp, BannedRecord
+from ipaddress import ip_address, IPv4Address
 
 MYSQL_HOST = os.environ.get("MYSQL_HOST", "localhost")
 MYSQL_USER = os.environ.get("MYSQL_USER", "bernard")
@@ -40,12 +41,22 @@ def valid_input(variable):
     return True
 
 
+def is_ipv4(ip: str) -> bool:
+    try:
+        return True if type(ip_address(ip)) is IPv4Address else False
+    except ValueError:
+        raise Exception(f"Invalid IP, {ip} (should not happen)")
+
+
 @app.route("/api/subdomain", methods=["POST", "PUT", "GET", "DELETE"])
 def api_subdomain():
     if request.environ.get("HTTP_X_FORWARDED_FOR") is None:
         remote_addr = request.environ["REMOTE_ADDR"]
     else:
         remote_addr = request.environ["HTTP_X_FORWARDED_FOR"]
+
+    if not is_ipv4(remote_addr):
+        return json_abort(404, "Service currently only supports IPv4")
 
     # check if IP is banned
     if len(BannedIp.query.filter_by(ip=remote_addr).all()) != 0:
