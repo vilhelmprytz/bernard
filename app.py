@@ -101,8 +101,8 @@ def api_subdomain():
     if request.method == "POST" or request.method == "PUT":
         # request data
         form = request.json
-        subdomain = form["subdomain"]
-        zone_name = form["zone"]
+        subdomain = form["subdomain"].lower()
+        zone_name = form["zone"].lower()
 
         # check if record is valid or banned
         if not valid_input(subdomain):
