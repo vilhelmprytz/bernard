@@ -3,6 +3,7 @@ version: "3.8"
 services:
   app:
     image: prytz/bernard
+    restart: always
     environment:
       PORT: ${PORT}
       DATABASE_TYPE: "sqlite"

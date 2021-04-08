@@ -4,6 +4,7 @@ services:
   mysql:
     image: mysql
     container_name: bernard_mysql
+    restart: always
     environment:
       MYSQL_DATABASE: "bernard"
       MYSQL_USER: "bernard"
@@ -13,6 +14,7 @@ services:
       - bernard-mysql:/var/lib/mysql
   app:
     image: prytz/bernard
+    restart: always
     environment:
       MYSQL_HOST: "mysql"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
