@@ -1,9 +1,13 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, abort
+from werkzeug.exceptions import HTTPException
+from json import dumps
 import os
 import string
+
 from dns_providers import bind9
 from models import db, Zone, Record, BannedIp, BannedRecord
 from ipaddress import ip_address, IPv4Address
+from validation import expect_json
 
 MYSQL_HOST = os.environ.get("MYSQL_HOST", "localhost")
 MYSQL_USER = os.environ.get("MYSQL_USER", "bernard")
@@ -30,10 +34,6 @@ with app.app_context():
     db.create_all()
 
 
-def json_abort(code, msg):
-    return jsonify({"success": False, "description": msg, "code": code}), code
-
-
 def valid_input(variable):
     alnum = set(string.ascii_letters + string.digits)
     if any(x not in alnum for x in variable):
@@ -48,6 +48,19 @@ def is_ipv4(ip: str) -> bool:
         raise Exception(f"Invalid IP, {ip} (should not happen)")
 
 
+# all error pages are now JSON instead of HTML
+@app.errorhandler(HTTPException)
+def handle_exception(e):
+    response = e.get_response()
+
+    response.data = dumps(
+        {"success": False, "name": e.name, "description": e.description, "code": e.code}
+    )
+
+    response.content_type = "application/json"
+    return response, e.code
+
+
 @app.route("/api/subdomain", methods=["POST", "PUT", "GET", "DELETE"])
 def api_subdomain():
     if request.environ.get("HTTP_X_FORWARDED_FOR") is None:
@@ -56,21 +69,22 @@ def api_subdomain():
         remote_addr = request.environ["HTTP_X_FORWARDED_FOR"]
 
     if not is_ipv4(remote_addr):
-        return json_abort(404, "Service currently only supports IPv4")
+        abort(400, "Service currently only supports IPv4")
 
     # check if IP is banned
     if len(BannedIp.query.filter_by(ip=remote_addr).all()) != 0:
-        return json_abort(401, "Your IP has been banned from using this servcice")
+        abort(401, "Your IP has been banned from using this servcice")
 
     if request.method == "GET":
         search = Record.query.filter_by(ip=remote_addr)
 
         if len(search.all()) == 0:
-            return json_abort(404, "You do not have a subdomain")
+            abort(404, "You do not have a subdomain")
 
         return jsonify(
             {
                 "success": True,
+                "name": "OK",
                 "description": "You already have a subdomain",
                 "code": 200,
                 "response": {
@@ -83,7 +97,7 @@ def api_subdomain():
         search = Record.query.filter_by(ip=remote_addr)
 
         if len(search.all()) == 0:
-            return json_abort(404, "You do not have a subdomain")
+            abort(400, "You do not have a subdomain")
 
         db.session.delete(search.first())
         db.session.commit()
@@ -93,6 +107,7 @@ def api_subdomain():
         return jsonify(
             {
                 "success": True,
+                "name": "OK",
                 "description": "Subdomain removed",
                 "code": 200,
             }
@@ -100,22 +115,22 @@ def api_subdomain():
 
     if request.method == "POST" or request.method == "PUT":
         # request data
-        form = request.json
-        subdomain = form["subdomain"].lower()
-        zone_name = form["zone"].lower()
+        data = expect_json({"subdomain": str, "zone": str})
+        subdomain = data["subdomain"].lower()
+        zone_name = data["zone"].lower()
 
         # check if record is valid or banned
         if not valid_input(subdomain):
-            return json_abort(400, "Not valid subdomain")
+            abort(400, "Not valid subdomain")
         if len(subdomain) < 4 or len(subdomain) > 50:
-            return json_abort(400, "Too long or too short subdomain (between 4 and 50)")
+            abort(400, "Too long or too short subdomain (between 4 and 50)")
         if len(BannedRecord.query.filter_by(subdomain=subdomain).all()) != 0:
-            return json_abort(401, "Unauthorized to obtain requested subdomain")
+            abort(401, "Unauthorized to obtain requested subdomain")
 
         # verify that zone is valid
         zone = Zone.query.filter_by(zone=zone_name)
         if len(zone.all()) != 1:
-            return json_abort(400, "Invalid zone")
+            abort(404, f"No zone with name {zone_name} found")
         zone = zone.first()
 
         # if PUT, we delete the previous record
@@ -123,43 +138,49 @@ def api_subdomain():
             search = Record.query.filter_by(ip=remote_addr)
 
             if len(search.all()) == 0:
-                return json_abort(404, "You do not have a subdomain")
+                abort(404, "You do not have a subdomain")
 
             db.session.delete(search.first())
             db.session.commit()
 
         # lookup in table
-        search = Record.query.filter_by(subdomain=form["subdomain"], zone=zone)
+        search = Record.query.filter_by(subdomain=subdomain, zone=zone)
 
         if len(search.all()) != 0 and search.first().ip == remote_addr:
             return jsonify(
                 {
                     "success": True,
+                    "name": "OK",
                     "description": f"You already have this subdomain {subdomain}.{zone.zone}",
                     "code": 200,
                 }
             )
 
         if len(search.all()) != 0 and search.first().ip != remote_addr:
-            return json_abort(400, "Someone else has this subdomain")
+            abort(400, "Someone else has this subdomain")
 
-        record = Record(subdomain=form["subdomain"], ip=remote_addr, zone=zone)
+        record = Record(subdomain=subdomain, ip=remote_addr, zone=zone)
 
         db.session.add(record)
         try:
             db.session.commit()
         except Exception as e:
             if "Duplicate entry" in str(e):
-                return json_abort(
+                abort(
                     400,
-                    "You already have a subdomain, contact the subdomain provider to remove it!",
+                    "You already have a subdomain",
                 )
             raise e
 
         bind9.sync(zones=Zone.query.all(), records=Record.query.all())
 
         return jsonify(
-            {"success": True, "description": "Subdomain created", "code": 200}
+            {
+                "success": True,
+                "name": "OK",
+                "description": "Subdomain created",
+                "code": 200,
+            }
         )
 
 
